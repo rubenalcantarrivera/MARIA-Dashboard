@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Las Flores",
+        "risk_level": "high",
+        "population": 2400,
+        "recommendation": "Reforest 20 hectares of mangrove shoreline to reduce flood risk."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-99.135, 19.425],
+          [-99.145, 19.425],
+          [-99.145, 19.435],
+          [-99.135, 19.435],
+          [-99.135, 19.425]
+        ]]
+      }
+    }
+  ]
+}
