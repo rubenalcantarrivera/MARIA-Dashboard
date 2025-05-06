@@ -13,16 +13,23 @@ const App = () => {
   const [ndvi,     setNdvi]     = useState(null);
 
   useEffect(() => {
-    const LAT = 19.1738, LON = -96.1342; // Costa de Veracruz
+    const LAT = 19.1738, LON = -96.1342; // Veracruz Coast
 
+    // load coastal zones
     fetch('/data/zones.geojson')
-      .then(r => r.json()).then(setGeoData).catch(console.error);
+      .then(r => r.json())
+      .then(setGeoData)
+      .catch(console.error);
 
+    // 3-day weather forecast
     getThreeDayForecast(LAT, LON)
-      .then(setForecast).catch(console.error);
+      .then(setForecast)
+      .catch(console.error);
 
+    // demo NDVI values
     getNDVI(LAT, LON)
-      .then(setNdvi).catch(console.error);
+      .then(setNdvi)
+      .catch(console.error);
   }, []);
 
   const onEach = (feature, layer) =>
@@ -34,7 +41,7 @@ const App = () => {
       : feature.properties.risk_level === 'medium'
         ? 'orange'
         : 'green',
-    weight: 1,
+    weight:      1,
     fillOpacity: 0.5
   });
 
@@ -58,7 +65,7 @@ const App = () => {
         )}
       </MapContainer>
 
-      {/* Panel de Datos Básicos: solo cuando se selecciona una zona */}
+      {/* Basic data panel appears when a zone is clicked */}
       {zone && (
         <div style={{
           position:     'absolute',
@@ -72,13 +79,13 @@ const App = () => {
           zIndex:       1000
         }}>
           <h3>{zone.name}</h3>
-          <p><strong>Riesgo:</strong> {zone.risk_level}</p>
-          <p><strong>Población:</strong> {zone.population}</p>
-          <p><strong>Recomendación:</strong> {zone.recommendation}</p>
+          <p><strong>Risk Level:</strong> {zone.risk_level}</p>
+          <p><strong>Population:</strong> {zone.population}</p>
+          <p><strong>Recommendation:</strong> {zone.recommendation}</p>
         </div>
       )}
 
-      {/* Panel de Análisis y Propuestas: siempre visible */}
+      {/* Analysis and recommendations always visible */}
       {forecast && ndvi && (
         <AnalysisPanel
           zone={zone}
