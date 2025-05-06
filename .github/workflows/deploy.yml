@@ -1,13 +1,13 @@
-name: 🛠 Build & Deploy MARIA Dashboard
+name: Build & Deploy MARIA Dashboard
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,14 +18,14 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-  run: npm install
+        run: npm install
 
-      - name: Build the app
+      - name: Build app
         run: npm run build
 
-      - name: Deploy to gh-pages branch
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
           publish_dir: ./build
+          publish_branch: gh-pages
