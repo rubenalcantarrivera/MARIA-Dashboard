@@ -1,66 +1,100 @@
-// src/AnalysisPanel.js
-import React from 'react';
+// src/App.js
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { getThreeDayForecast } from './api/openWeather';
+import { getNDVI }              from './api/satellite';
+import AnalysisPanel           from './AnalysisPanel';
 
-const AnalysisPanel = ({ zone, forecast, ndvi }) => {
-  // Hallazgos
-  const highRisk = zone?.risk_level === 'high';
-  const tempAlerts = forecast?.some(f => f.main.temp > 35);
-  const ndviDrop = ndvi && ndvi.length >= 2 && ndvi[1].ndvi < ndvi[0].ndvi;
+const App = () => {
+  const [geoData,   setGeoData]   = useState(null);
+  const [zone,      setZone]      = useState(null);
+  const [forecast,  setForecast]  = useState(null);
+  const [ndvi,      setNdvi]      = useState(null);
+
+  useEffect(() => {
+    const LAT = 19.1738, LON = -96.1342; // Veracruz
+
+    fetch('/data/zones.geojson')
+      .then(r => r.json())
+      .then(setGeoData)
+      .catch(console.error);
+
+    getThreeDayForecast(LAT, LON)
+      .then(setForecast)
+      .catch(console.error);
+
+    getNDVI(LAT, LON)
+      .then(setNdvi)
+      .catch(console.error);
+  }, []);
+
+  const onEach = (feature, layer) =>
+    layer.on({ click: () => setZone(feature.properties) });
+
+  const style = feature => {
+    const lvl = feature.properties.risk_level;
+    return {
+      color: lvl === 'high'
+             ? 'red'
+             : lvl === 'medium'
+               ? 'orange'
+               : 'green',
+      weight: 1,
+      fillOpacity: 0.5
+    };
+  };
 
   return (
-    <div style={{
-      position: 'absolute',
-      bottom: 10, left: 10,
-      background: '#fff', padding: 12,
-      borderRadius: 6, maxWidth: 300,
-      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-      fontSize: '0.9rem',
-      lineHeight: 1.4
-    }}>
-      <h4>🔍 Análisis y Propuestas</h4>
+    <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
+      <MapContainer
+        center={[19.1738, -96.1342]}
+        zoom={11}
+        style={{ height: '100%', width: '100%' }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution="&copy; OpenStreetMap contributors"
+        />
+        {geoData && (
+          <GeoJSON
+            data={geoData}
+            onEachFeature={onEach}
+            style={style}
+          />
+        )}
+      </MapContainer>
 
+      {/* Panel de datos básicos */}
       {zone && (
-        <>
-          <p><strong>Zona:</strong> {zone.name}</p>
-          {highRisk && <p style={{color:'red'}}>- 🤚 Muy alto riesgo: priorizar restauración.</p>}
-        </>
+        <div style={{
+          position:     'absolute',
+          top:          10,
+          right:        10,
+          background:   '#fff',
+          padding:      10,
+          borderRadius: 6,
+          boxShadow:    '0 2px 6px rgba(0,0,0,0.2)',
+          maxWidth:     250,
+          zIndex:       1000
+        }}>
+          <h3>{zone.name}</h3>
+          <p><strong>Riesgo:</strong> {zone.risk_level}</p>
+          <p><strong>Población:</strong> {zone.population}</p>
+          <p><strong>Recomendación:</strong> {zone.recommendation}</p>
+        </div>
       )}
 
-      {forecast && (
-        <>
-          <p><strong>Pronóstico:</strong></p>
-          <ul>
-            {forecast.map(f=>(
-              <li key={f.dt_txt}>
-                {f.dt_txt.slice(5,16)}: {f.main.temp}°C
-              </li>
-            ))}
-          </ul>
-          {tempAlerts && <p style={{color:'orange'}}>- 🔥 Temperaturas >35°C      (alerta de calor)</p>}
-        </>
+      {/* Panel de análisis avanzado */}
+      {zone && forecast && ndvi && (
+        <AnalysisPanel
+          zone={zone}
+          forecast={forecast}
+          ndvi={ndvi}
+        />
       )}
-
-      {ndvi && (
-        <>
-          <p><strong>Tendencia NDVI:</strong></p>
-          <ul>
-            {ndvi.map((n,i)=>(
-              <li key={i}>{n.date}: {n.ndvi}</li>
-            ))}
-          </ul>
-          {ndviDrop && <p style={{color:'green'}}>- 📉 Caída de vegetación detectada.</p>}
-        </>
-      )}
-
-      <h5>Propuestas:</h5>
-      <ul>
-        <li>🌱 Restaurar manglares en zonas rojas.</li>
-        <li>🛠 Defensas verdes (diques permeables).</li>
-        <li>📲 Alertas tempranas vía SMS/WhatsApp.</li>
-        <li>🤝 Brigadas ciudadanas de monitoreo.</li>
-      </ul>
     </div>
   );
 };
 
-export default AnalysisPanel;
+export default App;
