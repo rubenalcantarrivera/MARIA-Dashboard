@@ -1,100 +1,56 @@
-// src/App.js
-import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import { getThreeDayForecast } from './api/openWeather';
-import { getNDVI }              from './api/satellite';
-import AnalysisPanel           from './AnalysisPanel';
+// src/AnalysisPanel.js
+import React from 'react';
 
-const App = () => {
-  const [geoData,   setGeoData]   = useState(null);
-  const [zone,      setZone]      = useState(null);
-  const [forecast,  setForecast]  = useState(null);
-  const [ndvi,      setNdvi]      = useState(null);
+const AnalysisPanel = ({ zone, forecast, ndvi }) => {
+  // Cálculos generales
+  const highRiskMsg = zone?.risk_level === 'high'
+    ? '⚠️ Esta zona es de muy alto riesgo: priorizar restauración.'
+    : 'ℹ️ Riesgo moderado.';
 
-  useEffect(() => {
-    const LAT = 19.1738, LON = -96.1342; // Veracruz
+  const tempAlerts = forecast?.some(f => f.main.temp > 35)
+    ? '🔥 Se esperan temperaturas >35°C en los próximos 3 días.'
+    : null;
 
-    fetch('/data/zones.geojson')
-      .then(r => r.json())
-      .then(setGeoData)
-      .catch(console.error);
-
-    getThreeDayForecast(LAT, LON)
-      .then(setForecast)
-      .catch(console.error);
-
-    getNDVI(LAT, LON)
-      .then(setNdvi)
-      .catch(console.error);
-  }, []);
-
-  const onEach = (feature, layer) =>
-    layer.on({ click: () => setZone(feature.properties) });
-
-  const style = feature => {
-    const lvl = feature.properties.risk_level;
-    return {
-      color: lvl === 'high'
-             ? 'red'
-             : lvl === 'medium'
-               ? 'orange'
-               : 'green',
-      weight: 1,
-      fillOpacity: 0.5
-    };
-  };
+  const ndviDrop = ndvi && ndvi.length >= 2 && ndvi[1].ndvi < ndvi[0].ndvi
+    ? '📉 Disminución reciente de cubierta vegetal (NDVI).'
+    : null;
 
   return (
-    <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
-      <MapContainer
-        center={[19.1738, -96.1342]}
-        zoom={11}
-        style={{ height: '100%', width: '100%' }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; OpenStreetMap contributors"
-        />
-        {geoData && (
-          <GeoJSON
-            data={geoData}
-            onEachFeature={onEach}
-            style={style}
-          />
-        )}
-      </MapContainer>
+    <div style={{
+      position:   'absolute',
+      bottom:     10,
+      left:       10,
+      background: '#fff',
+      padding:    12,
+      borderRadius: 6,
+      maxWidth:   320,
+      boxShadow:  '0 2px 6px rgba(0,0,0,0.2)',
+      fontSize:   '0.9rem',
+      lineHeight: 1.4,
+      zIndex:     1000
+    }}>
+      <h4>🔍 Análisis de Veracruz</h4>
 
-      {/* Panel de datos básicos */}
-      {zone && (
-        <div style={{
-          position:     'absolute',
-          top:          10,
-          right:        10,
-          background:   '#fff',
-          padding:      10,
-          borderRadius: 6,
-          boxShadow:    '0 2px 6px rgba(0,0,0,0.2)',
-          maxWidth:     250,
-          zIndex:       1000
-        }}>
-          <h3>{zone.name}</h3>
-          <p><strong>Riesgo:</strong> {zone.risk_level}</p>
-          <p><strong>Población:</strong> {zone.population}</p>
-          <p><strong>Recomendación:</strong> {zone.recommendation}</p>
-        </div>
-      )}
+      {zone
+        ? <p><strong>Zona seleccionada:</strong> {zone.name}</p>
+        : <p><strong>Región:</strong> Costa de Veracruz</p>
+      }
 
-      {/* Panel de análisis avanzado */}
-      {zone && forecast && ndvi && (
-        <AnalysisPanel
-          zone={zone}
-          forecast={forecast}
-          ndvi={ndvi}
-        />
-      )}
+      <ul style={{ paddingLeft: '1em' }}>
+        <li>{highRiskMsg}</li>
+        {tempAlerts && <li>{tempAlerts}</li>}
+        {ndviDrop &&   <li>{ndviDrop}</li>}
+      </ul>
+
+      <h5>Propuestas de acción</h5>
+      <ul style={{ paddingLeft: '1em' }}>
+        <li>🌱 Restaurar manglares y vegetación ribereña.</li>
+        <li>🛠 Construir defensas verdes (dique permeable).</li>
+        <li>📲 Enviar alertas SMS/WhatsApp en eventos extremos.</li>
+        <li>🤝 Organizar brigadas ciudadanas de monitoreo.</li>
+      </ul>
     </div>
   );
 };
 
-export default App;
+export default AnalysisPanel;
