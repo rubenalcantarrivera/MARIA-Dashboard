@@ -1,7 +1,0 @@
-{
-  "extends": "./node_modules/react-scripts/tsconfig.json",
-  "compilerOptions": {
-    "noEmit": true
-  },
-  "include": ["src"]
-}
