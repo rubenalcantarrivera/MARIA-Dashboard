@@ -37,3 +37,5 @@ MARIA is an open-source interactive dashboard to monitor coastal climate risks i
 
 ## 📄 License
 MIT License © 2025 rubenalcantarrivera
+
+<!-- bump -->
