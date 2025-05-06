@@ -2,7 +2,7 @@
   "name": "maria-dashboard",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://YOUR_USERNAME.github.io/maria-dashboard",
+  "homepage": "https://rubenalcantarrivera.github.io/MARIA-Dashboard",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
