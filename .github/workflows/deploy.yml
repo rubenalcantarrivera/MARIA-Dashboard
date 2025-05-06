@@ -5,19 +5,20 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Use Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
@@ -34,6 +35,10 @@ jobs:
       - name: Upload artifact for Pages
         uses: actions/upload-pages-artifact@v1
         with:
+          path: build
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
           path: build
 
       - name: Deploy to GitHub Pages
